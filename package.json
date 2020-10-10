@@ -1,0 +1,14 @@
+{
+  "name": "getinfo-chatbot",
+  "version": "1.0.0",
+  "description": "VU bot to provide information on VU block model delivery and capstone unit related queries efficiently.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "AVI",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
