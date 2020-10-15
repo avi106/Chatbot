@@ -1,3 +1,10 @@
+const dialogFlow = require('dialogflow');
+const config = require('../config/keys')
+
+const sessionClient = new dialogFlow.sessionClient();
+
+const sessionPath = sessionClient.sessionPath(config.googleProjectID, config.dialogFlowSessionID);
+
 module.exports = (app) => {
   //Routes
   app.get("/", (req, res) => {
