@@ -11,11 +11,11 @@ function App() {
         </p>
         <a
           className="App-link"
-          href="https://reactjs.org"
+          href="http://localhost:5000/api/df_text_query"
           target="_blank"
           rel="noopener noreferrer"
         >
-          Learn React
+          Some stuff from the backend.
         </a>
       </header>
     </div>
