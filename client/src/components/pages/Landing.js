@@ -4,8 +4,9 @@ const Landing = () =>
     (
         <div style={{ textAlign: 'center'}}>
             <h1>
-                Selling you great stuff! with the help of the chatbot.
+                Selling you great stuff! 
             </h1>
+            <p>with the help of the chatbot.</p>
         </div>
     )
 
