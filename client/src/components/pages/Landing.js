@@ -4,7 +4,7 @@ const Landing = () =>
     (
         <div style={{ textAlign: 'center'}}>
             <h1>
-                Selling you great stuff! 
+                Want to know about IT courses available at VU.
             </h1>
             <p>with the help of the chatbot.</p>
         </div>
