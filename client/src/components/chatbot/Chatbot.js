@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import axios from 'axios/index';
 
+import Message from './Message';
+
 class Chatbot extends Component {
 
     constructor(props) {
@@ -34,20 +36,35 @@ class Chatbot extends Component {
     async df_event_query(event) {
         const res = await axios.post('/api/df_event_query', {event})
 
-        for (let msg of res.data.fulfillmentText) {
-            let says = {
-                speaks: 'me',
-                msg: msg
-            }
-            this.setState({ messages: [...this.state.messages, says]});
+        if (res && res.data && res.data.fulfillmentText) {
+            this.setState({ messages: [...this.state.messages, {
+                speaks: 'bot',
+                msg: res.data.fulfillmentText
+            }]});
         }
+    }
 
+    componentDidMount() {
+        this.df_event_query('welcome');
+    }
+
+    renderMessages(stateMessages) {
+        console.log(stateMessages)
+        if (stateMessages) {
+            return stateMessages.map((message, i) => {
+                return <Message key={i} speaks={message.speaks} text={message.msg} />
+            });
+        } else {
+            return null;
+        }
     }
 
      render () {
          return (
              <div style= {{ height: 400, width: 400, float: 'right'}}>
                  <div id="chatbot" style={{ height: '100%', width: '100%', overflow: 'auto' }}>
+                     <h2>Chatbot</h2>
+                     {this.renderMessages(this.state.messages)}
                     <input type="text" />
                  </div>
              </div>
