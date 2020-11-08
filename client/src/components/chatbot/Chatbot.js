@@ -4,9 +4,12 @@ import axios from 'axios/index';
 import Message from './Message';
 
 class Chatbot extends Component {
-
+    messagesEnd;
     constructor(props) {
         super(props);
+        
+        this.handleInputKeyPress = this.handleInputKeyPress.bind(this);
+        
         this.state = {
             messages: []
         }
@@ -15,21 +18,17 @@ class Chatbot extends Component {
     async df_text_query(text) {
         let says = {
             speaks: 'me',
-            msg: {
-                text : {
-                    text: text
-                }
-            }
+            msg: text
         };
         this.setState({messages: [...this.state.messages, says]});
         const res = await axios.post('/api/df_text_query', {text})
 
-        for(let msg of res.data.fulfillmentText) {
-            says = {
-                speaks: 'bot',
-                msg: msg
-            }
-            this.setState({messages: [...this.state.messages, says]});
+
+        if (res && res.data && res.data.fulfillmentText) {
+            this.setState({ messages: [...this.state.messages, {
+                speaks:'bot',
+                msg: res.data.fulfillmentText
+            }]})
         }
     }
 
@@ -48,6 +47,10 @@ class Chatbot extends Component {
         this.df_event_query('welcome');
     }
 
+    componentDidUpdate() {
+        this.messagesEnd.scrollIntoView({ behavious: "smooth"})
+    }
+
     renderMessages(stateMessages) {
         console.log(stateMessages)
         if (stateMessages) {
@@ -59,13 +62,25 @@ class Chatbot extends Component {
         }
     }
 
+    handleInputKeyPress(e) {
+        console.log(e)
+        if (e.key === 'Enter'){
+            this.df_text_query(e.target.value);
+            e.target.value = '';
+        }
+    }
+
      render () {
          return (
              <div style= {{ height: 400, width: 400, float: 'right'}}>
                  <div id="chatbot" style={{ height: '100%', width: '100%', overflow: 'auto' }}>
                      <h2>Chatbot</h2>
                      {this.renderMessages(this.state.messages)}
-                    <input type="text" />
+                     <div ref={(el) => { this.messagesEnd = el;}} 
+                          style={{ float: "left", clear: "both"}}>
+
+                     </div>
+                    <input type="text" onKeyPress={this.handleInputKeyPress} />
                  </div>
              </div>
          )
