@@ -4,26 +4,31 @@ const structJson = require('../chatbot/structJson');
 const config = require('../config/keys')
 
 
-const projectID = config.googleProjectID;
+const projectId = config.googleProjectID;
+const sessionId =  config.dialogFlowSessionID;
+const languageCode = config.dialogFlowSessionLanguageCode
 
 const credentials = {
     client_email : config.googleClientEmail,
     private_key: config.googlePrivateKey
 }
 
-const sessionClient = new dialogFlow.SessionsClient({projectID, credentials})
+const sessionClient = new dialogFlow.SessionsClient({projectId, credentials})
 
-const sessionPath = sessionClient.sessionPath(config.googleProjectID, config.dialogFlowSessionID);
+
+
 
 module.exports =  {
-    textQuery:  async function(text, parameters = {}) {
+    textQuery:  async function(text, userID, parameters = {}) {
+        const sessionPath = sessionClient.sessionPath(config.googleProjectID, config.dialogFlowSessionID + userID);
         let self = module.exports;
+       
         const request = {
             session: sessionPath,
             queryInput: {
                 text: {
                     text: text,
-                    languageCode: config.dialogFlowSessionLanguageCode,
+                    languageCode: config.dialogFlowSessionLanguageCode
                 },
             },
             queryParams: {
@@ -37,8 +42,9 @@ module.exports =  {
            return responses     
     },
 
-    eventQuery:  async function(event, parameters = {}) {
+    eventQuery:  async function(event, userID, parameters = {}) {
         let self = module.exports;
+        const sessionPath = sessionClient.sessionPath(config.googleProjectID, config.dialogFlowSessionID + userID);
         const request = {
             session: sessionPath,
             queryInput: {

@@ -1,91 +1,290 @@
-import React, { Component } from 'react';
-import axios from 'axios/index';
+import React, { Component } from "react";
+import axios from "axios/index";
+import Cookies from "universal-cookie";
+import { v4 as uuid } from "uuid";
 
-import Message from './Message';
+import Message from "./Message";
+import Card from "./Card";
+import QuickReplies from "./QuickReplies";
+
+const cookies = new Cookies();
 
 class Chatbot extends Component {
-    messagesEnd;
-    constructor(props) {
-        super(props);
-        
-        this.handleInputKeyPress = this.handleInputKeyPress.bind(this);
-        
-        this.state = {
-            messages: []
-        }
+  messagesEnd;
+  talkInput;
+
+  constructor(props) {
+    super(props);
+
+    this.handleInputKeyPress = this.handleInputKeyPress.bind(this);
+    this.handleQuickReplyPayload = this.handleQuickReplyPayload.bind(this);
+    this.hide = this.hide.bind(this);
+    this.show = this.show.bind(this);
+
+    this.state = {
+      messages: [],
+      showBot: true,
+    };
+
+    if (cookies.get("userID") === undefined) {
+      cookies.set("userID", uuid(), { path: "/" });
     }
+    console.log(cookies.get("userID"));
+  }
 
-    async df_text_query(text) {
-        let says = {
-            speaks: 'me',
-            msg: text
-        };
-        this.setState({messages: [...this.state.messages, says]});
-        const res = await axios.post('/api/df_text_query', {text})
+  async df_text_query(queryText) {
+    let says = {
+      speaks: "me",
+      msg: queryText,
+    };
+    this.setState({ messages: [...this.state.messages, says] });
+    const res = await axios.post("/api/df_text_query", {
+      text: queryText,
+      userID: cookies.get("userID"),
+    });
 
-
-        if (res && res.data && res.data.fulfillmentText) {
-            this.setState({ messages: [...this.state.messages, {
-                speaks:'bot',
-                msg: res.data.fulfillmentText
-            }]})
-        }
+    if (res && res.data && res.data.fulfillmentText) {
+      this.setState({
+        messages: [
+          ...this.state.messages,
+          {
+            speaks: "bot",
+            msg: res.data.fulfillmentText,
+          },
+        ],
+      });
     }
+  }
 
-    async df_event_query(event) {
-        const res = await axios.post('/api/df_event_query', {event})
+  async df_event_query(eventName) {
+    const res = await axios.post("/api/df_event_query", {
+      event: eventName,
+      userID: cookies.get("userID"),
+    });
 
-        if (res && res.data && res.data.fulfillmentText) {
-            this.setState({ messages: [...this.state.messages, {
-                speaks: 'bot',
-                msg: res.data.fulfillmentText
-            }]});
-        }
+    if (res && res.data && res.data.fulfillmentText) {
+      console.log(JSON.stringify(res.data.fulfillmentText));
+      this.setState({
+        messages: [
+          ...this.state.messages,
+          {
+            speaks: "bot",
+            msg: res.data.fulfillmentText,
+          },
+        ],
+      });
     }
+  }
 
-    componentDidMount() {
-        this.df_event_query('welcome');
+  componentDidMount() {
+    this.df_event_query("welcome");
+  }
+
+  componentDidUpdate() {
+    this.messagesEnd.scrollIntoView({ behaviour: "smooth" });
+    if (this.talkInput) {
+      this.talkInput.focus();
     }
+  }
 
-    componentDidUpdate() {
-        this.messagesEnd.scrollIntoView({ behavious: "smooth"})
+  show(event) {
+    event.preventDefault();
+    event.stopPropagation()
+    this.setState({ showBot: true });
+  }
+
+  hide(event) {
+    event.preventDefault();
+    event.stopPropagation()
+    this.setState({ showBot: false });
+  }
+
+  handleQuickReplyPayload(event, payload, text) {
+    if (text === "maybe") {
+      this.df_event_query(text);
+    } else {
+      this.df_text_query(text);
     }
+  }
 
-    renderMessages(stateMessages) {
-        console.log(stateMessages)
-        if (stateMessages) {
-            return stateMessages.map((message, i) => {
-                return <Message key={i} speaks={message.speaks} text={message.msg} />
-            });
-        } else {
-            return null;
-        }
+  renderCards(cards) {
+    console.log(cards);
+    return cards.map((card, i) => <Card key={i} payload={card.structValue} />);
+  }
+
+  renderOneMessage(message, i) {
+    console.log(message);
+    if (message.speaks && message.msg) {
+      console.log(message.msg);
+      return <Message key={i} speaks={message.speaks} text={message.msg} />;
+    } else if (
+      message.msg &&
+      message.msg.payload &&
+      message.msg.payload.fields &&
+      message.msg.playload.fields.cards
+    ) {
+      return (
+        <div key={i}>
+          <div className="card-panel grey lighten-5 z-depth-1">
+            <div style={{ overflow: "hidden" }}>
+              <div className="col s2">
+                <a
+                  href="/"
+                  className="btn-floating btn-large waves-effect waves-light red"
+                >
+                  {message.speaks}
+                </a>
+              </div>
+
+              <div style={{ overflow: "auto", overflowY: "scroll" }}>
+                <div
+                  style={{
+                    height: 300,
+                    width:
+                      message.msg.payload.fields.cards.listValue.values.length *
+                      270,
+                  }}
+                >
+                  {this.renderCards(
+                    message.msg.payload.fields.cards.listValue.values
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    } else if (
+      message.msg &&
+      message.msg.payload &&
+      message.msg.payload.fields &&
+      message.msg.payload.fields.quick_replies
+    ) {
+      return (
+        <QuickReplies
+          text={
+            message.msg.payload.fields.text
+              ? message.msg.payload.field.text
+              : null
+          }
+          key={i}
+          replyClick={this.handleQuickReplyPayload}
+          speaks={message.speaks}
+          payload={message.msg.payload.fields.quick_replies.listValue.values}
+        />
+      );
     }
+  }
 
-    handleInputKeyPress(e) {
-        console.log(e)
-        if (e.key === 'Enter'){
-            this.df_text_query(e.target.value);
-            e.target.value = '';
-        }
+  renderMessages(stateMessages) {
+    console.log(stateMessages);
+    if (stateMessages) {
+      return stateMessages.map((message, i) => {
+        return this.renderOneMessage(message, i);
+      });
+    } else {
+      return null;
     }
+  }
 
-     render () {
-         return (
-             <div style= {{ height: 400, width: 400, float: 'right'}}>
-                 <div id="chatbot" style={{ height: '100%', width: '100%', overflow: 'auto' }}>
-                     <h2>Chatbot</h2>
-                     {this.renderMessages(this.state.messages)}
-                     <div ref={(el) => { this.messagesEnd = el;}} 
-                          style={{ float: "left", clear: "both"}}>
+  handleInputKeyPress(e) {
+    console.log(e);
+    if (e.key === "Enter") {
+      this.df_text_query(e.target.value);
+      e.target.value = "";
+    }
+  }
 
-                     </div>
-                    <input type="text" onKeyPress={this.handleInputKeyPress} />
-                 </div>
-             </div>
-         )
-     }
+  render() {
+    if (this.state.showBot) {
+      return (
+        <div
+          style={{
+            minHeight: 500,
+            width: 400,
+            position: "absolute",
+            bottom: 0,
+            right: 0,
+            border: "1px solid lightgrey",
+          }}
+        >
+          <nav>
+            <div className="nav-wrapper">
+              <a
+                href="https://www.vu.edu.au/?gclid=Cj0KCQiA-rj9BRCAARIsANB_4AAd69nlumNJ2DwbvemH93OPaOSotbtSSWkfSsJATNqgB9obp4SqCKoaAoFFEALw_wcB"
+                className="brand-logo"
+              >
+                VUCHATBOT
+              </a>
+              <ul id="nav-mobile" className="right hand-on-med-and-down">
+                <li><a href= "/" onClick={this.hide}>Close</a></li>
+              </ul>
+            </div>
+          </nav>
+          <div
+            id="chatbot"
+            style={{ height: 388, width: "100%", overflow: "auto" }}
+          >
+            {this.renderMessages(this.state.messages)}
+            <div
+              autoFocus
+              ref={(el) => {
+                this.messagesEnd = el;
+              }}
+              style={{ float: "left", clear: "both" }}
+            ></div>
+          </div>
+          <div className="col s12">
+            <input
+              style={{
+                margin: 0,
+                paddingLeft: "1%",
+                paddingRight: "1%",
+                width: "98%",
+              }}
+              placeholder="type a message..."
+              type="text"
+              onKeyPress={this.handleInputKeyPress}
+            />
+          </div>
+        </div>
+      );
+    } else {
+      return (
+        <div
+          style={{
+            minHeight: 40,
+            width: 400,
+            position: "absolute",
+            bottom: 0,
+            right: 0,
+            border: "1px solid lightgrey",
+          }}
+        >
+          <nav>
+            <div className="nav-wrapper">
+              <a
+                href="https://www.vu.edu.au/?gclid=Cj0KCQiA-rj9BRCAARIsANB_4AAd69nlumNJ2DwbvemH93OPaOSotbtSSWkfSsJATNqgB9obp4SqCKoaAoFFEALw_wcB"
+                className="brand-logo"
+              >
+                VUCHATBOT
+              </a>
+              <ul id="nav-mobile" className="right hand-on-med-and-down">
+                <li><a href= "/" onClick={this.show}>Show</a></li>
+              </ul>
+            </div>
+          </nav>
+          <div
+              autoFocus
+              ref={(el) => {
+                this.messagesEnd = el;
+              }}
+              style={{ float: "left", clear: "both" }}
+            ></div>
+        </div>
+      );
+    }
+  }
 }
-
 
 export default Chatbot;

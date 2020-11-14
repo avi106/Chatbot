@@ -9,4 +9,4 @@ require("./routes/dialogFlowRoutes")(app);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(5000);
+app.listen(PORT);
