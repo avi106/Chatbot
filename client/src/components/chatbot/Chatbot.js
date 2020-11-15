@@ -76,8 +76,18 @@ class Chatbot extends Component {
     }
   }
 
-  componentDidMount() {
-    this.df_event_query("welcome");
+  resolveAfterXSeconds(x) {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve(x);
+      }, x * 1000);
+    });
+  }
+
+
+  async componentDidMount() {
+    this.df_event_query("Welcome");
+    await this.resolveAfterXSeconds(1)
   }
 
   componentDidUpdate() {
@@ -98,6 +108,7 @@ class Chatbot extends Component {
     event.stopPropagation()
     this.setState({ showBot: false });
   }
+  
 
   handleQuickReplyPayload(event, payload, text) {
     if (text === "maybe") {
@@ -217,7 +228,7 @@ class Chatbot extends Component {
                 VUCHATBOT
               </a>
               <ul id="nav-mobile" className="right hand-on-med-and-down">
-                <li><a href= "/" onClick={this.hide}>Close</a></li>
+                <li><a href= "/" onClick={this.hide}>CLOSE</a></li>
               </ul>
             </div>
           </nav>
@@ -270,7 +281,7 @@ class Chatbot extends Component {
                 VUCHATBOT
               </a>
               <ul id="nav-mobile" className="right hand-on-med-and-down">
-                <li><a href= "/" onClick={this.show}>Show</a></li>
+                <li><a href= "/" onClick={this.show}>SHOW</a></li>
               </ul>
             </div>
           </nav>
