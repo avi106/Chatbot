@@ -4,7 +4,7 @@ import ItemList from './ItemList';
 
 const Shop = () => (
             <div>
-            <h2>Shop</h2>
+            <h2>Courses</h2>
             <ItemList />
         </div>
     )

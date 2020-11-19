@@ -219,7 +219,7 @@ class Chatbot extends Component {
             border: "1px solid lightgrey",
           }}
         >
-          <nav>
+          <nav style={{ backgroundColor: '#3b6dd1'}}>
             <div className="nav-wrapper">
               <a
                 href="https://www.vu.edu.au/?gclid=Cj0KCQiA-rj9BRCAARIsANB_4AAd69nlumNJ2DwbvemH93OPaOSotbtSSWkfSsJATNqgB9obp4SqCKoaAoFFEALw_wcB"
@@ -272,7 +272,7 @@ class Chatbot extends Component {
             border: "1px solid lightgrey",
           }}
         >
-          <nav>
+          <nav style={{ backgroundColor: '#3b6dd1'}}>
             <div className="nav-wrapper">
               <a
                 href="https://www.vu.edu.au/?gclid=Cj0KCQiA-rj9BRCAARIsANB_4AAd69nlumNJ2DwbvemH93OPaOSotbtSSWkfSsJATNqgB9obp4SqCKoaAoFFEALw_wcB"
